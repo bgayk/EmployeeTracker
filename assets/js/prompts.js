@@ -21,6 +21,22 @@ let prompts = [];
 // Main Menu Options and Functions
 let mainMenuOptions = ['Add Department', 'Add Role', 'Add Employee', 'View Departments', 'View Roles', 'View Employees', 'Update Employee Role', 'Exit'];
 
+function fetchContinueQuestions() {
+    let question = clientQuestion;
+    // Initialize clientQuestions array
+    clientQuestions = [];
+
+    question.question = 'Continue?';
+    question.varName = `continue`;
+    question.type = 'confirm';
+    question.choices = [];
+    clientQuestions.push(JSON.parse(JSON.stringify(question)));
+
+    buildPrompts();
+    
+    return prompts;
+
+}
 
 function fetchMainMenuQuestions() {
     let question = clientQuestion;
@@ -55,40 +71,6 @@ function fetchAddDepartmentQuestions() {
 }
 
 
-function loadQuestions() {
-    let question = clientQuestion;
-    // Initialize clientQuestions array
-    clientQuestions = [];
-
-    
-    question.question = 'Enter your logo text: ';
-    question.varName = `logoText`;
-    question.type = 'input';
-    question.choices = [];
-    clientQuestions.push(JSON.parse(JSON.stringify(question)));
-
-
-    question.question = 'Enter your logo text color: ';
-    question.varName = `logoTextColor`;
-    question.type = 'input';
-    question.choices = [];
-    clientQuestions.push(JSON.parse(JSON.stringify(question)));
-
-    question.question = 'Select your logo shape: ';
-    question.varName = `logoShape`;
-    question.type = 'list';
-    question.choices = ['Square', 'Circle', 'Triangle'];
-    clientQuestions.push(JSON.parse(JSON.stringify(question)));
-
-    question.question = 'Enter your logo shape color: ';
-    question.varName = `logoShapeColor`;
-    question.type = 'input';
-    question.choices = [];
-    clientQuestions.push(JSON.parse(JSON.stringify(question)));
-
-    // console.log(clientQuestions);
-    buildPrompts();
-}
 
 function buildPrompts() {    
     // Initialize prompts array
@@ -102,18 +84,15 @@ function buildPrompts() {
         prompt.message = clientQuestion.question;
         prompt.name = clientQuestion.varName;
         prompt.choices = clientQuestion.choices;
+        if (prompt.type === 'list' || prompt.type === 'checkbox') {
+            prompt.pageSize = 4;
+        }
  
         prompts.push(JSON.parse(JSON.stringify(prompt))); 
     }        
     // console.log(prompts);
 }
 
-function fetchPrompts() {
-    loadQuestions();
 
-    return prompts;
-}
-
-
-module.exports = {fetchMainMenuQuestions, fetchAddDepartmentQuestions};
+module.exports = {fetchMainMenuQuestions, fetchAddDepartmentQuestions, fetchContinueQuestions};
 
