@@ -1,128 +1,175 @@
-inquirer = require("inquirer");
+const inquirer = require("inquirer");
+// const { default: inquirer } = inquirer;
+
 prompts = require("./assets/js/prompts.js");
+
 // Import and require mysql2
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
+const { async } = require("rxjs");
 
 // Connect to database
-const db = mysql.createConnection(
+const dbConfig = 
     {
       host: 'localhost',
       // MySQL username,
       user: 'root',
       password: 'example',
       database: 'employee_db'
-    },
-    console.log(`Connected to the employees_db database.`)
-  );
-  
-// addDepartment will add a department to the database
-const addDepartment = async () => {
-    // Prompt for department name
-    /*
-    const response = await inquirer.prompt(prompts.fetchAddDepartmentQuestions());
+    };
+
+let db;
+
     
-    console.log(response);
+async function addDepartment(){}
+async function addRole(){}
+async function addEmployee(){}
+async function updateEmployeeRole(){}
 
-    if (response.deptName === null || response.deptName === undefined) {
-        console.log(`No department name entered.  Returning to main menu.`);
-        return;
-    }
-    */
-
-    // Query the database for all departments to avoid duplicates
-    const sql = `SELECT dept_name FROM department WHERE dept_name = ?;`;
-    const params = ['Sales'];
-
-    let depts = [];
-    db.query(sql, params, (err, rows) => {
-            if (err) {
-            console.log(`Error: ${err.message}`);
-            return;
-            }
-            for(let i = 0; i < rows.length; i++) {            
-               depts.push(rows[i].dept_name);
-            }
-            console.log(`\n\nDepartment: ${depts[0]} already exists.  Returning to main menu.  Please try again.`);
-            return;     
-            });
-}
-
-const viewDepartments = async () => 
+async function viewDepartments() 
 {
     const sql = `SELECT dept_name Department, dept_id DepartmentID FROM department;`;
-    db.query(sql, (err, rows) => {
-        if (err) {
-            console.log(`Error: ${err.message}`);
-            return;
-        }
+    const params =[];
 
-        console.table(rows, ['Department', 'DepartmentID']);
-    });
+    let result = [];
+    try {        
+        result = await db.query(sql, params);
+    } catch(err) {
+        console.log(`DB viewDepartments Error: ${err.message}`);
+        return false;
+    } 
+
+    let parsedResult = [];
+    // Parsing the result set to remove RowDataPacket 
+    // and leverage native JS arrays
+    for (let i = 0; i < result[0].length; i++) {
+        parsedResult.push(JSON.parse(JSON.stringify(result[0][i])));
+    }
+
+    console.log(`\n\n`);
+    console.table(parsedResult, ['Department', 'DepartmentID']);
+
+    return true;
 }
 
-const viewRoles = async () => 
+
+async function viewRoles()  
 {
     const sql = `SELECT department.dept_name Department, role.title Role, role.role_id RoleID, role.salary Salary ` + 
                 ` FROM role ` +
                 ` LEFT JOIN department ON department.dept_id = role.dept_id ` +
                 ` ORDER BY department.dept_name, role.salary DESC;`;
-    
-    db.query(sql, (err, rows) => {
-        if (err) {
-            console.log(`Error: ${err.message}`);
-            return;
-        }
+    const params =[];
 
-        console.table(rows, ['Role', 'RoleID', 'Department', 'Salary']);
+    let result = [];
+    try {        
+        result = await db.query(sql, params);
+    } catch(err) {
+        console.log(`DB viewRoles Error: ${err.message}`);
+        return false;
+    } 
 
-    });
+    let parsedResult = [];
+    // Parsing the result set to remove RowDataPacket 
+    // and leverage native JS arrays
+    for (let i = 0; i < result[0].length; i++) {
+        parsedResult.push(JSON.parse(JSON.stringify(result[0][i])));
+    }
+
+    console.log(`\n\n`);
+    console.table(parsedResult, ['Role', 'RoleID', 'Department', 'Salary']);
+
+    return true;
 }
 
-const viewEmployees = async () =>
+const viewEmployees = async () => 
 {
-    const sql = `SELECT department.dept_name Department, role.title Role, role.salary Salary ` + 
-                ` FROM employee ` +
-                ` JOIN role ON department.dept_id = role.dept_id ` +
-                ` ORDER BY department.dept_name, role.salary DESC;`;
-    
-    db.query(sql, (err, rows) => {
-        if (err) {
-            console.log(`Error: ${err.message}`);
-            return;
-        }
+    // Calling a view to get the employee details
+    const sql = 'SELECT * FROM view_employee_detail;'
+    const params =[];
 
-        console.table(rows, ['Department', 'Role', 'Salary']);
+    let result = [];
+    try {        
+        result = await db.query(sql, params);
+    } catch(err) {
+        console.log(`DB viewEmployees Error: ${err.message}`);
+        return false;
+    } 
 
-    });    
+    let parsedResult = [];
+    // Parsing the result set to remove RowDataPacket 
+    // and leverage native JS arrays
+    for (let i = 0; i < result[0].length; i++) {
+        parsedResult.push(JSON.parse(JSON.stringify(result[0][i])));
+    }
+
+    console.log(`\n\n`);
+    console.table(parsedResult, ['EmployeeID', 'EmpFirstName', 'EmpLastName', 'JobTitle', 'Department', 'Salary', 'MgrFirstName', 'MgrLastName']);
+
+    return true;
+       
 }
 
-const main = async () => {
-    let mainMenuAction = ``;
+// async function main()
+const main = async () => 
+{
+    // Connect to database
+    try {
+        db = await mysql.createConnection(dbConfig);
+    }   
+    catch(err) {
+        console.log(`DB Connection Error: ${err.message}`);
+        process.exit(1);
+    }
+
+    let optionSuccess = true;
+    let mmPrompt = '';
 
     do {
         console.clear();
-        mainMenuAction = await inquirer.prompt(prompts.fetchMainMenuQuestions());
-        // console.log(mainMenuAction);
-        switch(mainMenuAction.mainMenuSelection) {
-            case `Add Department`:
-                addDepartment();
-                break;
-            case `View Departments`:
-                viewDepartments();
-                break;
-            case `View Roles`:
-                viewRoles();
-                break;
-        };    
-        if (mainMenuAction.mainMenuSelection === `Exit`) {  
-            console.log(`Exiting application.`);
-            // await inquirer.prompt(prompts.fetchContinueQuestions());
-            break;
-        }
-    } while (mainMenuAction.mainMenuSelection !== `Exit`);
+        console.log(`\n\nMain Menu\n\n`);
+
+        let mmPrompt = await inquirer.prompt(prompts.fetchMainMenuQuestions())
+            .then(async (response) => {
+                optionSuccess = false
+                switch(response.mainMenuSelection) 
+                {
+                    case `Add Department`:   
+                        // addDepartment();
+                        optionSuccess = await addDepartment();
+                        break;
+                    case `View Departments`:
+                        optionSuccess = await viewDepartments();
+                        break;
+                    case `View Roles`:                        
+                        optionSuccess = await viewRoles();
+                        break;
+                    case `View Employees`:                        
+                        optionSuccess = await viewEmployees();
+                        break;
+                    case 'Exit':
+                        optionSuccess = false;
+                        break;
+                };
+
+                let continuePrompt = await inquirer.prompt(prompts.fetchContinueQuestions());
+
+                if (response.mainMenuSelection === `Exit` || !continuePrompt.continue) {  
+                    console.log(`Exiting application.`);
+                    process.exit(0);
+                }
+            })
+            .catch((err) => {
+                if (err.isTtyError) {
+                    console.log(`Prompt couldn't be rendered in the current environment`);
+                } else {
+                    console.log(`ERROR: ${err}`);
+                }
+            });            
+    } while (optionSuccess);
 
     process.exit(0);
-}
+};
+
 
 main();
-
+process.exit(0);

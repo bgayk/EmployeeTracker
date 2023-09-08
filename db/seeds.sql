@@ -737,3 +737,15 @@ SELECT employee.*, e2.first_name, e2.last_name
   LEFT JOIN employee e2
     ON e2.employee_id = employee.manager_id;
 
+DROP VIEW IF EXISTS view_employee_detail;
+CREATE VIEW view_employee_detail
+AS
+SELECT e.employee_id EmployeeID, 
+       e.first_name EmpFirstName, e.last_name EmpLastName, 
+       r.title JobTitle, d.dept_name Department, r.salary Salary, 
+       e2.first_name MgrFirstName, e2.last_name MgrLastName 
+       FROM employee e  
+       LEFT JOIN employee e2 ON e2.employee_id = e.manager_id  
+       LEFT JOIN role r ON e.role_id = r.role_id 
+       LEFT JOIN department d ON d.dept_id = r.dept_id                  
+       ORDER BY d.dept_name, r.salary DESC;
