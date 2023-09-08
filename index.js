@@ -109,11 +109,17 @@ const viewEmployees = async () =>
        
 }
 
-// const main = async () => 
-async function main()
+// async function main()
+const main = async () => 
 {
     // Connect to database
-    db = await mysql.createConnection(dbConfig);
+    try {
+        db = await mysql.createConnection(dbConfig);
+    }   
+    catch(err) {
+        console.log(`DB Connection Error: ${err.message}`);
+        process.exit(1);
+    }
 
     let optionSuccess = true;
     let mmPrompt = '';
