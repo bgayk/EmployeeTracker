@@ -20,66 +20,10 @@ const dbConfig =
 let db;
 
     
-
-// addDepartment will add a department to the database
-async function addDepartment() {
-    const inq2 = require("inquirer");
-
-    // Prompt for department name
-    let userChoice = '';            if (response.deptName === null || response.deptName === undefined) {
-    console.clear();
-
-    console.log(`\n\nExisting Departments \n\n`);
-    
-    // viewDepartments();
-
-    console.log(`Add Department \n\n`);
-    let departmentToAdd = '';
-    userChoice = await inq2.prompt(prompts.fetchAddDepartmentQuestions())
-        .then((response) => {
-            if (response.deptName === null || response.deptName === undefined) {
-                console.log(`No department name entered.  Returning to main menu.`);
-                return true;
-            } else
-            {
-                departmentToAdd = response.deptName;
-            };
-        })
-        .catch((err) => {
-            if (err.isTtyError) {
-              console.log(`Prompt couldn't be rendered in the current environment`);
-            } else {
-                console.log(`Error: ${err.message}`);
-            }
-            return false;
-        });
-
-        // Add Deparmtnet to database
-        if (departmentToAdd !== '') {
-            // Query the database for all departments to avoid duplicates
-            const sql = `SELECT dept_name FROM department WHERE dept_name = ?;`;
-            const params = [departmentToAdd];
-            let result = [];
-            try 
-            {        
-                result = await db.query(sql, params);
-            } catch(err) 
-            {
-                console.log(`\n\nDB addDepartment Error: ${err.message}`);
-                return false;
-            } 
-            if (result[0].length > 0) {
-                console.log(`\n\nDepartment: ${departmentToAdd} already exists.  Returning to main menu.`);
-                return true;
-            }
-
-            // Add department to database
-            
-        }
-
-
-
-}
+async function addDepartment(){}
+async function addRole(){}
+async function addEmployee(){}
+async function updateEmployeeRole(){}
 
 async function viewDepartments() 
 {
@@ -212,12 +156,14 @@ async function main()
                 if (err.isTtyError) {
                     console.log(`Prompt couldn't be rendered in the current environment`);
                 } else {
-                    console.log(`Something else went wrong: ${err}`);
+                    console.log(`ERROR: ${err}`);
                 }
             });            
     } while (optionSuccess);
 
     process.exit(0);
-}
+};
+
 
 main();
+process.exit(0);
